@@ -10,18 +10,19 @@
 
   <div class="profile-header text-center mb-4">
     <div class="profile-avatar position-relative d-inline-block">
-      <img 
-        [src]="previewUrl || user.photo_url " 
-        alt="Foto de perfil" 
-        class="rounded-circle border" 
+      <img
+        [src]="previewUrl || user.photo_url "
+        alt="Foto de perfil"
+        class="rounded-circle border"
         width="120" height="120"
       >
 
-      <input 
-        type="file" 
-        #fileInput 
-        accept="image/*" 
-        (change)="onFileSelected($event)" 
+      <input
+        type="file"
+        #fileInput
+        name="photo"
+        accept="image/*"
+        (change)="onFileSelected($event)"
         hidden
       >
 
@@ -33,10 +34,11 @@
     <h4 class="profile-name mt-3">{{ user?.name }}</h4>
     <p class="profile-role">Usuário do sistema</p>
 
-    
-    <button 
-      class="btn btn-edit mt-3" 
-      *ngIf="selectedFile" 
+
+    <button
+      class="btn btn-edit mt-3"
+      *ngIf="selectedFile"
+      name="photo"
       (click)="uploadPhoto()"
     >
       <i class="bi bi-check-circle"></i> Salvar foto

@@ -3,6 +3,8 @@ import { AuthService } from '../../auth/auth.service';
 import { CommonModule } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { UsersService } from '../../services/users/users.service';
+import { SwalService } from '../../services/utils/swal.service';
+
 @Component({
   selector: 'app-my-profile',
   standalone: true,
@@ -19,8 +21,29 @@ export class MyProfileComponent {
 
   constructor(
     private authService: AuthService,
-    private http: HttpClient
+    private http: HttpClient,
+    private usersService: UsersService,
+    private swalService: SwalService
   ) {}
+
+  ngOnInit(): void {
+    this.loadUsers();
+  }
+
+  loadUsers(): void {
+    this.usersService.findAll().subscribe({
+      next: (response: any) => {
+        // this.leads = response;
+      },
+      error: (error) => {
+        console.error('Erro ao buscar o usuário:', error);
+        this.swalService.error(
+          'Erro ao carregar o usuário',
+          'Não foi possível carregar o usuário da API.'
+        );
+      }
+    });
+  }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
@@ -36,28 +59,34 @@ export class MyProfileComponent {
   }
 
   uploadPhoto(): void {
-  if (!this.selectedFile) return;
+    if (!this.selectedFile) return;
 
-  const formData = new FormData();
-  formData.append('photo', this.selectedFile);
-
-  this.http.post<{ photo_url: string, user: any }>(
-    'http://localhost:8000/api/users/upload-photo',
-    formData
-  ).subscribe({
-    next: (res) => {
-      console.log('Upload feito com sucesso', res);
-
-      this.previewUrl = res.photo_url;
-
-      this.authService.setUser(res.user); 
-      this.user = res.user;               
-    },
-    error: (err) => {
-      console.error('Erro no upload', err);
+    if (!this.selectedFile.type.startsWith('image/')) {
+      this.swalService.error('Arquivo inválido', 'Por favor, selecione uma imagem.');
+      return;
     }
-  });
-}
+
+    const formData = new FormData();
+
+    formData.append('photo', this.selectedFile, this.selectedFile.name);
+
+    this.http.post<{ photo_url: string; user: any }>(
+      'http://localhost:8000/api/users/upload-photo',
+      formData
+    ).subscribe({
+      next: (res) => {
+        console.log('Upload feito com sucesso', res);
+        this.previewUrl = res.photo_url;
+        this.authService.setUser(res.user);
+        this.user = res.user;
+      },
+      error: (err) => {
+        console.error('Erro no upload', err);
+        this.swalService.error('Erro no upload da foto', err.error?.message || 'Erro desconhecido.');
+      }
+    });
+  }
+
 
 
 }
